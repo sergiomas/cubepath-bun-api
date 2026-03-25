@@ -1,14 +1,7 @@
-const server = Bun.serve({
-  port: Number(process.env.PORT ?? 3000),
-  fetch(request) {
-    const url = new URL(request.url);
+import { startServer } from "./src/server";
 
-    if (request.method === "GET" && url.pathname === "/health") {
-      return Response.json({ status: "ok" });
-    }
+console.log("[boot] Iniciando API Bun...");
 
-    return new Response("Not Found", { status: 404 });
-  },
-});
+const server = startServer();
 
-console.log(`API escuchando en http://localhost:${server.port}`);
+console.log(`[boot] API escuchando en http://localhost:${server.port}`);
