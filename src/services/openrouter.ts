@@ -1,10 +1,6 @@
 import { OpenRouter } from "@openrouter/sdk";
 import { env } from "../config/env";
-
-export interface ChatCompletionInput {
-  message: string;
-  model: string;
-}
+import type { ChatCompletionInput, ChatTextStream } from "./chat.types";
 
 function createClient(): OpenRouter {
   console.log("[openrouter] Creando cliente de OpenRouter...");
@@ -21,7 +17,9 @@ function createClient(): OpenRouter {
   });
 }
 
-export async function createChatStream(input: ChatCompletionInput) {
+export async function createOpenRouterChatStream(
+  input: ChatCompletionInput,
+): Promise<ChatTextStream> {
   console.log("[openrouter] Iniciando sendChatMessage", {
     model: input.model,
     messageLength: input.message.length,
@@ -44,7 +42,42 @@ export async function createChatStream(input: ChatCompletionInput) {
     },
   });
 
-  console.log("[openrouter] Stream recibido y listo para ser consumido");
+  console.log("[openrouter] Stream recibido. Preparando parser...");
 
-  return stream;
+  async function* toTextStream(): AsyncGenerator<string, void, void> {
+    let streamChunkCount = 0;
+    let textChunkCount = 0;
+    let reasoningTokens: number | null = null;
+
+    for await (const chunk of stream) {
+      streamChunkCount += 1;
+
+      const content = chunk.choices[0]?.delta?.content;
+
+      if (content) {
+        textChunkCount += 1;
+        console.log("[openrouter] Chunk de texto", {
+          streamChunkCount,
+          textChunkCount,
+          contentLength: content.length,
+        });
+        yield content;
+      }
+
+      const usageReasoningTokens =
+        chunk.usage?.completionTokensDetails?.reasoningTokens;
+
+      if (usageReasoningTokens != null) {
+        reasoningTokens = usageReasoningTokens;
+      }
+    }
+
+    console.log("[openrouter] Stream parseado", {
+      streamChunkCount,
+      textChunkCount,
+      reasoningTokens,
+    });
+  }
+
+  return toTextStream();
 }

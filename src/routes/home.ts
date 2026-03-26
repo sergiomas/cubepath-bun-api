@@ -130,7 +130,7 @@ const landingHtml = `<!doctype html>
       <textarea id="message" placeholder="Escribe tu prompt aquí"></textarea>
 
       <label for="model">Modelo (opcional)</label>
-      <input id="model" placeholder="openrouter/free" />
+      <input id="model" placeholder="Opcional: modelo especifico para el proveedor actual" />
 
       <div class="actions">
         <button id="chatButton" type="button" class="primary">Enviar a /chat (stream)</button>
@@ -140,7 +140,7 @@ const landingHtml = `<!doctype html>
 
       <div id="status" class="status">Listo.</div>
       <pre id="output"></pre>
-      <small>Verás el texto según vaya llegando desde OpenRouter.</small>
+      <small>Verás el texto segun vaya llegando desde el proveedor seleccionado por round robin.</small>
     </main>
 
     <script>
@@ -215,7 +215,12 @@ const landingHtml = `<!doctype html>
             return;
           }
 
-          setStatus("Streaming activo...");
+          const provider = response.headers.get("X-Chat-Provider") || "desconocido";
+          const selectedModel = response.headers.get("X-Chat-Model") || "(sin modelo)";
+
+          setStatus(
+            "Streaming activo con " + provider + " (" + selectedModel + ")...",
+          );
 
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
@@ -233,7 +238,9 @@ const landingHtml = `<!doctype html>
           }
 
           outputElement.textContent += decoder.decode();
-          setStatus("Streaming finalizado.");
+          setStatus(
+            "Streaming finalizado con " + provider + " (" + selectedModel + ").",
+          );
         } catch (error) {
           setStatus("Error llamando /chat.");
           outputElement.textContent = String(error);
