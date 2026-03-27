@@ -37,6 +37,7 @@ function parsePort(value: string | undefined): number {
 const openRouterApiKey = process.env.OPENROUTER_API_KEY;
 const cerebrasApiKey = process.env.CEREBRAS_API_KEY;
 const groqApiKey = process.env.GROQ_API_KEY;
+const databaseUrl = process.env.DATABASE_URL;
 const openRouterModel = parseModel(
   process.env.OPENROUTER_MODEL,
   DEFAULT_OPENROUTER_MODEL,
@@ -58,12 +59,14 @@ console.log(
 );
 console.log(`[env] CEREBRAS_API_KEY configurada: ${Boolean(cerebrasApiKey)}`);
 console.log(`[env] GROQ_API_KEY configurada: ${Boolean(groqApiKey)}`);
+console.log(`[env] DATABASE_URL configurada: ${Boolean(databaseUrl)}`);
 
 export const env = {
   port: parsePort(process.env.PORT),
   openRouterApiKey,
   cerebrasApiKey,
   groqApiKey,
+  databaseUrl,
   openRouterModel,
   cerebrasModel,
   groqModel,
